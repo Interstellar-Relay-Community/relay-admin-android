@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Interstellar Admin</string>
+    <string name="title_activity_main">Interstellar Relay Admin</string>
+    <string name="title_activity_setting">Settings</string>
+    <string name="title_activity_connectedInstance">Connected instances</string>
+    <string name="title_activity_allowedInstance">Allowed instances</string>
+</resources>
