@@ -2,7 +2,9 @@ package flights.interstellar.admin.api.client
 
 import flights.interstellar.admin.api.ApClientInterface
 import flights.interstellar.admin.api.pojo.InstanceInfo
+import flights.interstellar.admin.api.pojo.InstanceUrl
 import flights.interstellar.admin.api.pojo.InstanceUserInfo
+import flights.interstellar.admin.api.pojo.UserHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -17,7 +19,10 @@ val apClient = ApClient()
 class ApClient : ApClientInterface {
     private val json = Json { ignoreUnknownKeys = true }
 
-    override suspend fun getUserInfo(instanceBaseUrl: String, handle: String): InstanceUserInfo {
+    override suspend fun getUserInfo(
+        instanceBaseUrl: InstanceUrl,
+        handle: UserHandle
+    ): InstanceUserInfo {
         //TODO: Refactor createRequest to properly handle query params
         val request = createRequest(
             apiBaseUrl = instanceBaseUrl,
@@ -31,7 +36,7 @@ class ApClient : ApClientInterface {
         }
     }
 
-    override suspend fun getInstanceInfo(instanceBaseUrl: String): InstanceInfo {
+    override suspend fun getInstanceInfo(instanceBaseUrl: InstanceUrl): InstanceInfo {
         val request =
             createRequest(apiBaseUrl = instanceBaseUrl, path = "api/v1", endpointName = "instance")
 
@@ -44,7 +49,7 @@ class ApClient : ApClientInterface {
 }
 
 private fun createRequest(
-    apiBaseUrl: String,
+    apiBaseUrl: InstanceUrl,
     path: String = "api/v1",
     endpointName: String
 ): Request {
