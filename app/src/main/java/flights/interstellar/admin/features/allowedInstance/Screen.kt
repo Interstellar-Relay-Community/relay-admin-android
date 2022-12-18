@@ -28,11 +28,11 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.material.placeholder
 import flights.interstellar.admin.R
-import flights.interstellar.admin.api.client.apClient
 import flights.interstellar.admin.api.pojo.InstanceInfo
 import flights.interstellar.admin.common.InterstallarAdminTheme
 import flights.interstellar.admin.common.Purple80
 import flights.interstellar.admin.common.Typography
+import flights.interstellar.admin.repository.instanceInfoRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -227,8 +227,9 @@ fun AllowedInstanceListItem(
 
     LaunchedEffect(Unit) {
         val instanceInfo = try {
-            apClient.getInstanceInfo(item.instanceUrl)
-        } catch (_: Exception) {
+            instanceInfoRepository.getInstanceInfo(item.instanceUrl)
+        } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
 
