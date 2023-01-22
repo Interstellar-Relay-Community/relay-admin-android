@@ -25,11 +25,15 @@ class ConnectedInstanceActivity : ComponentActivity() {
             )
         }
 
-        refresh()
+        lifecycleScope.launch {
+            viewModel.initialise(dataStore = dataStore)
+            refresh()
+        }
     }
 
-    private fun refresh() {
+    private suspend fun refresh() {
         lifecycleScope.launch {
+            viewModel.initialise(dataStore)
             viewModel.invalidateViewModel(dataStore.getApiKey())
         }
     }

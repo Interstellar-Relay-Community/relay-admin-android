@@ -15,10 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
@@ -28,15 +30,17 @@ import flights.interstellar.admin.api.pojo.InstanceInfo
 import flights.interstellar.admin.common.InterstallarAdminTheme
 import flights.interstellar.admin.common.Purple80
 import flights.interstellar.admin.repository.instanceInfoRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    backButtonCallback: () -> Unit,
-    refreshButtonCallback: () -> Unit,
+    backButtonCallback: suspend () -> Unit,
+    refreshButtonCallback: suspend () -> Unit,
     itemsState: State<List<ConnectedInstanceItem>?>
 ) {
     val scrollBehaviour = exitUntilCollapsedScrollBehavior()
+    val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     InterstallarAdminTheme {
         Surface(
@@ -51,7 +55,7 @@ fun MainScreen(
                     },
                     navigationIcon = {
                         IconButton(
-                            onClick = backButtonCallback
+                            onClick = { lifecycleScope.launch { backButtonCallback.invoke() } }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
@@ -61,7 +65,7 @@ fun MainScreen(
                     },
                     actions = {
                         IconButton(
-                            onClick = refreshButtonCallback
+                            onClick = { lifecycleScope.launch { refreshButtonCallback.invoke() } }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
