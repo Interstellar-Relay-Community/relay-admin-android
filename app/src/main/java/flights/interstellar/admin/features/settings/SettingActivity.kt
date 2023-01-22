@@ -18,6 +18,8 @@ class SettingActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MainScreen(
+                endpointUrlValueState = viewModel.endpointUrlState,
+                endpointUrlChangeCallback = { viewModel.endpointUrlState.value = it },
                 apiKeyValueState = viewModel.apiKeyState,
                 apiKeyChangeCallback = { viewModel.apiKeyState.value = it },
                 backButtonCallback = {

@@ -55,19 +55,18 @@ class AllowedInstanceActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
+            viewModel.initialise(dataStore)
             updateList()
         }
     }
 
-    private fun addAndUpdateList() {
-        lifecycleScope.launch {
-            viewModel.addAllowedInstance(
-                dataStore.getApiKey(),
-                viewModel.addAllowedInstanceDialogTextFlow.value
-            )
+    private suspend fun addAndUpdateList() {
+        viewModel.addAllowedInstance(
+            dataStore.getApiKey(),
+            viewModel.addAllowedInstanceDialogTextFlow.value
+        )
 
-            updateList()
-        }
+        updateList()
     }
 
     private fun closeDialog() {
@@ -79,16 +78,12 @@ class AllowedInstanceActivity : ComponentActivity() {
         viewModel.addAllowedInstanceDialogTextFlow.value = ""
     }
 
-    private fun deleteAndUpdateList(it: AllowedInstanceItem) {
-        lifecycleScope.launch {
-            viewModel.deleteAllowedInstance(dataStore.getApiKey(), it)
-            updateList()
-        }
+    private suspend fun deleteAndUpdateList(it: AllowedInstanceItem) {
+        viewModel.deleteAllowedInstance(dataStore.getApiKey(), it)
+        updateList()
     }
 
-    private fun updateList() {
-        lifecycleScope.launch {
-            viewModel.loadAllowedInstance(dataStore.getApiKey())
-        }
+    private suspend fun updateList() {
+        viewModel.loadAllowedInstance(dataStore.getApiKey())
     }
 }

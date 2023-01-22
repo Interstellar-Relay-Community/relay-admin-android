@@ -20,12 +20,16 @@ val MEDIATYPE_JSON = "application/json".toMediaType()
 @OptIn(ExperimentalSerializationApi::class)
 @Suppress("BlockingMethodInNonBlockingContext")
 class AodeClient : AodeRelayAdminApiInterface {
-    private val apiBaseUrl = "https://ap.interstellar.flights"
     private val path = "api/v1/admin"
 
-    override suspend fun postAllow(token: String, allowList: List<InstanceUrl>) {
+    override suspend fun postAllow(
+        token: String,
+        apiBaseUrl: String,
+        allowList: List<InstanceUrl>
+    ) {
         val request = createRequest(
             token = token,
+            apiBaseUrl = apiBaseUrl,
             endpointName = "allow",
             body = Json.encodeToString(PostAllowRequest(allowList))
                 .toRequestBody(contentType = MEDIATYPE_JSON)
@@ -36,9 +40,14 @@ class AodeClient : AodeRelayAdminApiInterface {
         }
     }
 
-    override suspend fun postDisallow(token: String, disallowList: List<InstanceUrl>) {
+    override suspend fun postDisallow(
+        token: String,
+        apiBaseUrl: String,
+        disallowList: List<InstanceUrl>
+    ) {
         val request = createRequest(
             token = token,
+            apiBaseUrl = apiBaseUrl,
             endpointName = "disallow",
             body = Json.encodeToString(PostAllowRequest(disallowList))
                 .toRequestBody(contentType = MEDIATYPE_JSON)
@@ -49,16 +58,25 @@ class AodeClient : AodeRelayAdminApiInterface {
         }
     }
 
-    override suspend fun postBlock(token: String, blockList: List<InstanceUrl>) {
+    override suspend fun postBlock(
+        token: String,
+        apiBaseUrl: String,
+        blockList: List<InstanceUrl>
+    ) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun postUnblock(token: String, unblockList: List<InstanceUrl>) {
+    override suspend fun postUnblock(
+        token: String,
+        apiBaseUrl: String,
+        unblockList: List<InstanceUrl>
+    ) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAllowed(token: String): List<InstanceUrl> {
-        val request = createRequest(token = token, endpointName = "allowed")
+    override suspend fun getAllowed(token: String, apiBaseUrl: String): List<InstanceUrl> {
+        val request =
+            createRequest(token = token, apiBaseUrl = apiBaseUrl, endpointName = "allowed")
 
         return withContext(Dispatchers.IO) {
             okHttpClient.newCall(request).execute().use {
@@ -67,12 +85,13 @@ class AodeClient : AodeRelayAdminApiInterface {
         }
     }
 
-    override suspend fun getBlocked(token: String): List<InstanceUrl> {
+    override suspend fun getBlocked(token: String, apiBaseUrl: String): List<InstanceUrl> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getConnected(token: String): List<Actor> {
-        val request = createRequest(token = token, endpointName = "connected")
+    override suspend fun getConnected(token: String, apiBaseUrl: String): List<Actor> {
+        val request =
+            createRequest(token = token, apiBaseUrl = apiBaseUrl, endpointName = "connected")
 
         return withContext(Dispatchers.IO) {
             okHttpClient.newCall(request).execute().use {
@@ -81,14 +100,15 @@ class AodeClient : AodeRelayAdminApiInterface {
         }
     }
 
-    override suspend fun getStats(token: String): AodeRelayStats {
+    override suspend fun getStats(token: String, apiBaseUrl: String): AodeRelayStats {
         TODO("Not yet implemented")
     }
 
     private fun createRequest(
         body: RequestBody? = null,
         token: String,
-        endpointName: String
+        endpointName: String,
+        apiBaseUrl: String
     ): Request {
         return Request.Builder()
             .run {

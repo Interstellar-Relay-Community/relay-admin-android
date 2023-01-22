@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
+import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
@@ -33,19 +35,21 @@ import flights.interstellar.admin.common.InterstallarAdminTheme
 import flights.interstellar.admin.common.Purple80
 import flights.interstellar.admin.common.Typography
 import flights.interstellar.admin.repository.instanceInfoRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    backButtonCallback: () -> Unit,
-    editButtonCallback: () -> Unit,
-    addButtonCallback: () -> Unit,
-    refreshButtonCallback: () -> Unit,
-    itemDeleteRequestedCallback: (AllowedInstanceItem) -> Unit,
+    backButtonCallback: suspend () -> Unit,
+    editButtonCallback: suspend () -> Unit,
+    addButtonCallback: suspend () -> Unit,
+    refreshButtonCallback: suspend () -> Unit,
+    itemDeleteRequestedCallback: suspend (AllowedInstanceItem) -> Unit,
     itemsState: State<List<AllowedInstanceItem>?>,
     editModeState: State<Boolean>
 ) {
     val scrollBehaviour = exitUntilCollapsedScrollBehavior()
+    val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     InterstallarAdminTheme {
         Surface(
@@ -60,7 +64,7 @@ fun MainScreen(
                     },
                     navigationIcon = {
                         IconButton(
-                            onClick = backButtonCallback
+                            onClick = { lifecycleScope.launch { backButtonCallback.invoke() } }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
@@ -72,7 +76,7 @@ fun MainScreen(
                         when (editModeState.value) {
                             true -> {
                                 IconButton(
-                                    onClick = editButtonCallback
+                                    onClick = { lifecycleScope.launch { editButtonCallback.invoke() } }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Done,
@@ -82,7 +86,7 @@ fun MainScreen(
                             }
                             false -> {
                                 IconButton(
-                                    onClick = refreshButtonCallback
+                                    onClick = { lifecycleScope.launch { refreshButtonCallback.invoke() } }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Refresh,
@@ -90,7 +94,7 @@ fun MainScreen(
                                     )
                                 }
                                 IconButton(
-                                    onClick = editButtonCallback
+                                    onClick = { lifecycleScope.launch { editButtonCallback.invoke() } }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Edit,
@@ -98,7 +102,7 @@ fun MainScreen(
                                     )
                                 }
                                 IconButton(
-                                    onClick = addButtonCallback
+                                    onClick = { lifecycleScope.launch { addButtonCallback.invoke() } }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
@@ -121,7 +125,9 @@ fun MainScreen(
                                 item = item,
                                 editMode = editModeState.value,
                                 deletePressedCallback = {
-                                    itemDeleteRequestedCallback.invoke(item)
+                                    lifecycleScope.launch {
+                                        itemDeleteRequestedCallback.invoke(item)
+                                    }
                                 }
                             )
                         }
@@ -287,13 +293,15 @@ fun AllowedInstanceListSkeletonItem() {
 fun InstanceAddDialog(
     dialogOpenState: State<Boolean>,
     dialogTextFieldState: State<String>,
-    dialogTextFieldChangeCallback: (String) -> Unit,
-    dialogDismissRequestCallback: () -> Unit,
-    dialogConfirmCallback: () -> Unit
+    dialogTextFieldChangeCallback: suspend (String) -> Unit,
+    dialogDismissRequestCallback: suspend () -> Unit,
+    dialogConfirmCallback: suspend () -> Unit
 ) {
+    val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
+
     if (dialogOpenState.value) {
         Dialog(
-            onDismissRequest = dialogDismissRequestCallback,
+            onDismissRequest = { lifecycleScope.launch { dialogDismissRequestCallback.invoke() } },
             properties = DialogProperties(
                 dismissOnBackPress = true,
                 dismissOnClickOutside = false,
@@ -316,7 +324,13 @@ fun InstanceAddDialog(
                     Spacer(Modifier.height(16.dp))
                     TextField(
                         value = dialogTextFieldState.value,
-                        onValueChange = dialogTextFieldChangeCallback,
+                        onValueChange = {
+                            lifecycleScope.launch {
+                                dialogTextFieldChangeCallback.invoke(
+                                    it
+                                )
+                            }
+                        },
                         label = {
                             Text("Instance domain")
                         }
@@ -327,12 +341,12 @@ fun InstanceAddDialog(
                         horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(
-                            onClick = dialogDismissRequestCallback
+                            onClick = { lifecycleScope.launch { dialogDismissRequestCallback.invoke() } }
                         ) {
                             Text("Cancel")
                         }
                         TextButton(
-                            onClick = dialogConfirmCallback
+                            onClick = { lifecycleScope.launch { dialogConfirmCallback.invoke() } }
                         ) {
                             Text("Add")
                         }

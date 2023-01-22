@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val PREFKEY_INSTANCEAPIKEY = stringPreferencesKey("PREFKEY_INSTANCEAPIKEY")
 val PREFKEY_APIKEY = stringPreferencesKey("PREFKEY_APIKEY")
 
 // TODO: Move this to helper in the near future

@@ -1,9 +1,6 @@
 package flights.interstellar.admin.features.settings
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
@@ -22,6 +19,8 @@ import flights.interstellar.admin.common.InterstallarAdminTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    endpointUrlValueState: State<String>,
+    endpointUrlChangeCallback: (String) -> Unit,
     apiKeyValueState: State<String>,
     apiKeyChangeCallback: (String) -> Unit,
     backButtonCallback: () -> Unit,
@@ -60,8 +59,21 @@ fun MainScreen(
                     }
                 )
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = endpointUrlValueState.value,
+                        onValueChange = endpointUrlChangeCallback,
+                        label = {
+                            Text(
+                                text = "Endpoint URL"
+                            )
+                        }
+
+                    )
+
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
                         value = apiKeyValueState.value,
@@ -83,6 +95,8 @@ fun MainScreen(
 @Composable
 fun MainScreenPreview() {
     MainScreen(
+        endpointUrlValueState = remember { mutableStateOf("") },
+        endpointUrlChangeCallback = {},
         apiKeyValueState = remember { mutableStateOf("") },
         apiKeyChangeCallback = {},
         backButtonCallback = {},
