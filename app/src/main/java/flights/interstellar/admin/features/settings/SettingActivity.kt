@@ -19,6 +19,7 @@ class SettingActivity : ComponentActivity() {
         setContent {
             MainScreen(
                 endpointUrlValueState = viewModel.endpointUrlState,
+                endpointUrlErrorMessageIdState = viewModel.endpointUrlErrorMessageIdState,
                 endpointUrlChangeCallback = { viewModel.endpointUrlState.value = it },
                 apiKeyValueState = viewModel.apiKeyState,
                 apiKeyChangeCallback = { viewModel.apiKeyState.value = it },
@@ -28,8 +29,10 @@ class SettingActivity : ComponentActivity() {
                 },
                 doneButtonCallback = {
                     lifecycleScope.launch {
-                        handleDone()
-                        finish()
+                        if (viewModel.endpointUrlErrorMessageIdState.value == null) {
+                            handleDone()
+                            finish()
+                        }
                     }
                 }
             )

@@ -20,6 +20,7 @@ import flights.interstellar.admin.common.InterstallarAdminTheme
 @Composable
 fun MainScreen(
     endpointUrlValueState: State<String>,
+    endpointUrlErrorMessageIdState: State<Int?>,
     endpointUrlChangeCallback: (String) -> Unit,
     apiKeyValueState: State<String>,
     apiKeyChangeCallback: (String) -> Unit,
@@ -70,8 +71,8 @@ fun MainScreen(
                             Text(
                                 text = "Endpoint URL"
                             )
-                        }
-
+                        },
+                        isError = endpointUrlErrorMessageIdState.value != null
                     )
 
                     OutlinedTextField(
@@ -96,10 +97,10 @@ fun MainScreen(
 fun MainScreenPreview() {
     MainScreen(
         endpointUrlValueState = remember { mutableStateOf("") },
+        endpointUrlErrorMessageIdState = remember { mutableStateOf(null) },
         endpointUrlChangeCallback = {},
         apiKeyValueState = remember { mutableStateOf("") },
         apiKeyChangeCallback = {},
-        backButtonCallback = {},
-        doneButtonCallback = {}
-    )
+        backButtonCallback = {}
+    ) {}
 }
