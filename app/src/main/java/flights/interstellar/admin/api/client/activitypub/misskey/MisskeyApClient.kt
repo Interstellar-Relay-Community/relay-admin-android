@@ -1,6 +1,7 @@
 package flights.interstellar.admin.api.client.activitypub.misskey
 
 import flights.interstellar.admin.api.ApClientInterface
+import flights.interstellar.admin.api.client.MEDIATYPE_JSON
 import flights.interstellar.admin.api.client.okHttpClient
 import flights.interstellar.admin.api.pojo.InstanceInfo
 import flights.interstellar.admin.api.pojo.InstanceUrl
@@ -42,7 +43,7 @@ class MisskeyApClient : ApClientInterface {
         endpointName: String
     ): Request {
         return Request.Builder()
-            .post(byteArrayOf().toRequestBody()) // Why, misskey, why...
+            .post("{}".toRequestBody(contentType = MEDIATYPE_JSON)) // Why, misskey, why...
             .url("https://$apiBaseUrl/$path/$endpointName")
             .build()
     }
