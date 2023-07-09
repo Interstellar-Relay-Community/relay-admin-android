@@ -1,5 +1,8 @@
 package flights.interstellar.admin.features.allowedInstance
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -119,27 +122,42 @@ fun MainScreen(
                 SnackbarHost(hostState = snackbarState)
             }
         ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .nestedScroll(scrollBehaviour.nestedScrollConnection)
-                    .padding(paddingValues = paddingValues),
+            Column(
+                modifier = Modifier.padding(paddingValues = paddingValues)
             ) {
-                itemsState.value?.let {
-                    items(it) { item ->
-                        AllowedInstanceListItem(
-                            item = item,
-                            editMode = editModeState.value,
-                            deletePressedCallback = {
-                                lifecycleScope.launch {
-                                    itemDeleteRequestedCallback.invoke(item)
-                                }
-                            }
+                itemsState.value?.size.let {
+                    AnimatedVisibility(
+                        visible = it != null,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = "Total instances: $it"
                         )
                     }
-                } ?: run {
-                    item {
-                        repeat(3) {
-                            AllowedInstanceListSkeletonItem()
+                }
+                LazyColumn(
+                    modifier = Modifier
+                        .nestedScroll(scrollBehaviour.nestedScrollConnection)
+                ) {
+                    itemsState.value?.let {
+                        items(it) { item ->
+                            AllowedInstanceListItem(
+                                item = item,
+                                editMode = editModeState.value,
+                                deletePressedCallback = {
+                                    lifecycleScope.launch {
+                                        itemDeleteRequestedCallback.invoke(item)
+                                    }
+                                }
+                            )
+                        }
+                    } ?: run {
+                        item {
+                            repeat(3) {
+                                AllowedInstanceListSkeletonItem()
+                            }
                         }
                     }
                 }
