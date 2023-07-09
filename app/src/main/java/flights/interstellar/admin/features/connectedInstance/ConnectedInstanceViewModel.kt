@@ -1,5 +1,6 @@
 package flights.interstellar.admin.features.connectedInstance
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,8 @@ import java.net.URL
 
 class ConnectedInstanceViewModel : ViewModel() {
     val connectedInstanceListStateFlow = MutableStateFlow<List<ConnectedInstanceItem>?>(null)
+
+    val snackbarHostState = SnackbarHostState()
 
     private lateinit var apiBaseUrl: String
     private val viewModelRefreshMutex = Mutex()
@@ -30,14 +33,18 @@ class ConnectedInstanceViewModel : ViewModel() {
             connectedInstanceListStateFlow.value = null
 
             // TODO: Implement pseudo-AP client to fetch instance's name and everything...
-            connectedInstanceListStateFlow.value =
-                aodeClient.getConnected(token = token, apiBaseUrl = apiBaseUrl).map { actor ->
-                    val instanceUrl = URL(actor).host
+            try {
+                connectedInstanceListStateFlow.value =
+                    aodeClient.getConnected(token = token, apiBaseUrl = apiBaseUrl).map { actor ->
+                        val instanceUrl = URL(actor).host
 
-                    ConnectedInstanceItem(
-                        instanceUrl = instanceUrl
-                    )
-                }.sortedBy { it.instanceUrl }
+                        ConnectedInstanceItem(
+                            instanceUrl = instanceUrl
+                        )
+                    }.sortedBy { it.instanceUrl }
+            } catch (e: Exception) {
+                snackbarHostState.showSnackbar(message = e.stackTraceToString().take(50))
+            }
         }
     }
 }

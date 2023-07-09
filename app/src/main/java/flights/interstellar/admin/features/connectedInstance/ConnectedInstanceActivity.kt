@@ -21,6 +21,7 @@ class ConnectedInstanceActivity : ComponentActivity() {
             MainScreen(
                 refreshButtonCallback = { refresh() },
                 backButtonCallback = { finish() },
+                snackbarState = viewModel.snackbarHostState,
                 itemsState = viewModel.connectedInstanceListStateFlow.collectAsState()
             )
         }

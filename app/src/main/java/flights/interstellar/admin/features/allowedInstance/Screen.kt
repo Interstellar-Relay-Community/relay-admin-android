@@ -45,6 +45,7 @@ fun MainScreen(
     addButtonCallback: suspend () -> Unit,
     refreshButtonCallback: suspend () -> Unit,
     itemDeleteRequestedCallback: suspend (AllowedInstanceItem) -> Unit,
+    snackbarState: SnackbarHostState,
     itemsState: State<List<AllowedInstanceItem>?>,
     editModeState: State<Boolean>
 ) {
@@ -52,10 +53,9 @@ fun MainScreen(
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     InterstallarAdminTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
                 LargeTopAppBar(
                     title = {
                         Text(
@@ -114,28 +114,32 @@ fun MainScreen(
                     },
                     scrollBehavior = scrollBehaviour
                 )
-                LazyColumn(
-                    modifier = Modifier
-                        .nestedScroll(scrollBehaviour.nestedScrollConnection)
-                        .weight(1f),
-                ) {
-                    itemsState.value?.let {
-                        items(it) { item ->
-                            AllowedInstanceListItem(
-                                item = item,
-                                editMode = editModeState.value,
-                                deletePressedCallback = {
-                                    lifecycleScope.launch {
-                                        itemDeleteRequestedCallback.invoke(item)
-                                    }
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarState)
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .nestedScroll(scrollBehaviour.nestedScrollConnection)
+                    .padding(paddingValues = paddingValues),
+            ) {
+                itemsState.value?.let {
+                    items(it) { item ->
+                        AllowedInstanceListItem(
+                            item = item,
+                            editMode = editModeState.value,
+                            deletePressedCallback = {
+                                lifecycleScope.launch {
+                                    itemDeleteRequestedCallback.invoke(item)
                                 }
-                            )
-                        }
-                    } ?: run {
-                        item {
-                            repeat(3) {
-                                AllowedInstanceListSkeletonItem()
                             }
+                        )
+                    }
+                } ?: run {
+                    item {
+                        repeat(3) {
+                            AllowedInstanceListSkeletonItem()
                         }
                     }
                 }
@@ -163,6 +167,7 @@ fun MainScreenPreview() {
                 )
             )
         },
+        snackbarState = remember { SnackbarHostState() },
         editModeState = remember { mutableStateOf(false) }
     )
 }

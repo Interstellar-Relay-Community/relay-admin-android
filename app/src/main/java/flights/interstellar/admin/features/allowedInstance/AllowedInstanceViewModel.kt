@@ -1,5 +1,6 @@
 package flights.interstellar.admin.features.allowedInstance
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
@@ -18,6 +19,8 @@ class AllowedInstanceViewModel : ViewModel() {
     val addAllowedInstanceDialogOpenState = MutableStateFlow(false)
     val addAllowedInstanceDialogTextFlow = MutableStateFlow("")
 
+    val snackbarState = SnackbarHostState()
+
     private lateinit var apiBaseUrl: String
     private val viewModelMutex = Mutex()
 
@@ -33,32 +36,45 @@ class AllowedInstanceViewModel : ViewModel() {
             connectedInstanceListStateFlow.value = null
 
             // TODO: Implement pseudo-AP client to fetch instance's name and everything...
-            connectedInstanceListStateFlow.value =
-                aodeClient.getAllowed(token = token, apiBaseUrl = apiBaseUrl).map { instanceUrl ->
-                    AllowedInstanceItem(
-                        instanceUrl = instanceUrl,
-                    )
-                }.sortedBy { it.instanceUrl }
+            try {
+                connectedInstanceListStateFlow.value =
+                    aodeClient.getAllowed(token = token, apiBaseUrl = apiBaseUrl)
+                        .map { instanceUrl ->
+                            AllowedInstanceItem(
+                                instanceUrl = instanceUrl,
+                            )
+                        }.sortedBy { it.instanceUrl }
+            } catch (e: Exception) {
+                snackbarState.showSnackbar(message = e.stackTraceToString().take(50))
+            }
         }
     }
 
     suspend fun addAllowedInstance(token: String, instanceUrl: String) {
         viewModelMutex.withLock {
-            aodeClient.postAllow(
-                token = token,
-                apiBaseUrl = apiBaseUrl,
-                allowList = listOf(instanceUrl)
-            )
+            try {
+                aodeClient.postAllow(
+                    token = token,
+                    apiBaseUrl = apiBaseUrl,
+                    allowList = listOf(instanceUrl)
+                )
+            } catch (e: Exception) {
+                snackbarState.showSnackbar(message = e.stackTraceToString().take(50))
+            }
         }
     }
 
     suspend fun deleteAllowedInstance(token: String, allowedInstanceItem: AllowedInstanceItem) {
         viewModelMutex.withLock {
-            aodeClient.postDisallow(
-                token = token,
-                apiBaseUrl = apiBaseUrl,
-                disallowList = listOf(allowedInstanceItem.instanceUrl)
-            )
+            try {
+                aodeClient.postDisallow(
+                    token = token,
+                    apiBaseUrl = apiBaseUrl,
+                    disallowList = listOf(allowedInstanceItem.instanceUrl)
+                )
+            } catch (e: Exception) {
+                snackbarState.showSnackbar(message = e.stackTraceToString().take(50))
+            }
         }
     }
 }
