@@ -37,16 +37,16 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     backButtonCallback: suspend () -> Unit,
     refreshButtonCallback: suspend () -> Unit,
+    snackbarState: SnackbarHostState,
     itemsState: State<List<ConnectedInstanceItem>?>
 ) {
     val scrollBehaviour = exitUntilCollapsedScrollBehavior()
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     InterstallarAdminTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
                 LargeTopAppBar(
                     title = {
                         Text(
@@ -75,20 +75,24 @@ fun MainScreen(
                     },
                     scrollBehavior = scrollBehaviour
                 )
-                LazyColumn(
-                    modifier = Modifier
-                        .nestedScroll(scrollBehaviour.nestedScrollConnection)
-                        .weight(1f),
-                ) {
-                    itemsState.value?.let {
-                        items(it) { item ->
-                            ConnectedInstanceListItem(item)
-                        }
-                    } ?: run {
-                        item {
-                            repeat(3) {
-                                ConnectedInstanceListSkeletonItem()
-                            }
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarState)
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .nestedScroll(scrollBehaviour.nestedScrollConnection)
+            ) {
+                itemsState.value?.let {
+                    items(it) { item ->
+                        ConnectedInstanceListItem(item)
+                    }
+                } ?: run {
+                    item {
+                        repeat(3) {
+                            ConnectedInstanceListSkeletonItem()
                         }
                     }
                 }
@@ -104,6 +108,7 @@ fun MainScreenPreview() {
     MainScreen(
         refreshButtonCallback = {},
         backButtonCallback = {},
+        snackbarState = remember { SnackbarHostState() },
         itemsState = remember {
             mutableStateOf(
                 listOf(

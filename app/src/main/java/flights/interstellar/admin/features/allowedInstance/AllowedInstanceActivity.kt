@@ -32,6 +32,7 @@ class AllowedInstanceActivity : ComponentActivity() {
                     updateList()
                 },
                 backButtonCallback = { finish() },
+                snackbarState = viewModel.snackbarState,
                 itemsState = viewModel.connectedInstanceListStateFlow.collectAsState(),
                 editModeState = viewModel.editMode.collectAsState()
             )
