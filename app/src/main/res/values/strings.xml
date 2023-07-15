@@ -5,4 +5,13 @@
     <string name="title_activity_connectedInstance">Connected instances</string>
     <string name="title_activity_allowedInstance">Allowed instances</string>
     <string name="activity_setting_urlformaterror_notsupportedproto">No protocol specified in URL, or specified protocol is not supported.</string>
+    <string name="total_instances">Total instances: %1$s</string>
+    <string name="refresh">Refresh</string>
+    <string name="back">Back</string>
+    <string name="endpoint_url">Endpoint URL</string>
+    <string name="api_key">API key</string>
+    <string name="interstellar_mode">Interstellar Mode</string>
+    <string name="enable_interstellar_features">Enable Interstellar Relay Community specific features.</string>
+    <string name="delete">Delete</string>
+    <string name="instance_admin_profile_photo">Instance admin profile photo</string>
 </resources>

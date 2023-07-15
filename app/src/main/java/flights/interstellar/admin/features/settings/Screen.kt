@@ -3,18 +3,19 @@ package flights.interstellar.admin.features.settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import flights.interstellar.admin.R
 import flights.interstellar.admin.common.InterstallarAdminTheme
+import flights.interstellar.admin.common.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,8 +25,9 @@ fun MainScreen(
     endpointUrlChangeCallback: (String) -> Unit,
     apiKeyValueState: State<String>,
     apiKeyChangeCallback: (String) -> Unit,
-    backButtonCallback: () -> Unit,
-    doneButtonCallback: () -> Unit
+    interstellarModeValueState: State<Boolean>,
+    interstellarModeChangeCallback: (Boolean) -> Unit,
+    backButtonCallback: () -> Unit
 ) {
     InterstallarAdminTheme {
         Surface {
@@ -44,19 +46,11 @@ fun MainScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = stringResource(id = R.string.back)
                             )
                         }
                     },
                     actions = {
-                        IconButton(
-                            onClick = doneButtonCallback
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Done,
-                                contentDescription = "Done"
-                            )
-                        }
                     }
                 )
                 Column(
@@ -69,7 +63,7 @@ fun MainScreen(
                         onValueChange = endpointUrlChangeCallback,
                         label = {
                             Text(
-                                text = "Endpoint URL"
+                                text = stringResource(id = R.string.endpoint_url)
                             )
                         },
                         isError = endpointUrlErrorMessageIdState.value != null
@@ -81,11 +75,33 @@ fun MainScreen(
                         onValueChange = apiKeyChangeCallback,
                         label = {
                             Text(
-                                text = "API key"
+                                text = stringResource(R.string.api_key)
                             )
                         }
 
                     )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                style = Typography.bodyMedium,
+                                text = stringResource(R.string.interstellar_mode)
+                            )
+                            Text(
+                                style = Typography.bodySmall,
+                                text = stringResource(R.string.enable_interstellar_features)
+                            )
+                        }
+                        Switch(
+                            checked = interstellarModeValueState.value,
+                            onCheckedChange = { interstellarModeChangeCallback.invoke(it) }
+                        )
+                    }
                 }
             }
         }
@@ -101,6 +117,8 @@ fun MainScreenPreview() {
         endpointUrlChangeCallback = {},
         apiKeyValueState = remember { mutableStateOf("") },
         apiKeyChangeCallback = {},
+        interstellarModeValueState = remember { mutableStateOf(false) },
+        interstellarModeChangeCallback = {},
         backButtonCallback = {}
-    ) {}
+    )
 }
