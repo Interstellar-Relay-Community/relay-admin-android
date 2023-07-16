@@ -39,6 +39,7 @@ import flights.interstellar.admin.common.Purple80
 import flights.interstellar.admin.common.Typography
 import flights.interstellar.admin.repository.instanceInfoRepository
 import kotlinx.coroutines.launch
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,7 +134,10 @@ fun MainScreen(
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = "Total instances: $it"
+                            text = stringResource(id = R.string.total_instances).format(
+                                Locale.US,
+                                it
+                            )
                         )
                     }
                 }
@@ -234,7 +238,7 @@ fun AllowedInstanceListItem(
                         .size(40.dp)
                         .clip(CircleShape),
                     model = instanceInfoState.value?.instanceAdminUser?.profilePhotoUrl,
-                    contentDescription = "Instance admin profile photo"
+                    contentDescription = stringResource(R.string.instance_admin_profile_photo)
                 )
             },
             trailingContent = {
@@ -244,7 +248,7 @@ fun AllowedInstanceListItem(
                         content = {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete"
+                                contentDescription = stringResource(R.string.delete)
                             )
                         }
                     )
@@ -303,7 +307,7 @@ fun AllowedInstanceListSkeletonItem() {
                         .clip(CircleShape)
                         .placeholder(true, highlight = PlaceholderHighlight.fade()),
                     painter = ColorPainter(color = Purple80),
-                    contentDescription = "Instance admin profile photo"
+                    contentDescription = stringResource(R.string.instance_admin_profile_photo)
                 )
             }
         )

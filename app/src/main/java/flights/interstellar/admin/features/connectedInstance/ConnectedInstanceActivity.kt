@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.lifecycleScope
+import flights.interstellar.admin.api.pojo.AuthorityConfig
 import flights.interstellar.admin.common.dataStore
 import flights.interstellar.admin.common.getApiKey
 import kotlinx.coroutines.launch
@@ -22,7 +23,23 @@ class ConnectedInstanceActivity : ComponentActivity() {
                 refreshButtonCallback = { refresh() },
                 backButtonCallback = { finish() },
                 snackbarState = viewModel.snackbarHostState,
-                itemsState = viewModel.connectedInstanceListStateFlow.collectAsState()
+                itemsState = viewModel.connectedInstanceListStateFlow.collectAsState(),
+                onItemClickListener = {
+                    if (viewModel.interstellarMode)
+                        viewModel.authorityConfigDialogState.value = it to it.authorityConfig
+                },
+                authorityConfigDialogDisplayState = viewModel.authorityConfigDialogState,
+                authorityConfigConfirmCallback = { item, authorityConfig ->
+                    saveAuthorityConfig(item, authorityConfig)
+                    viewModel.authorityConfigDialogState.value = null
+
+                    refresh()
+                },
+                authorityConfigDismissCallback = {
+                    viewModel.authorityConfigDialogState.value = null
+
+                    refresh()
+                }
             )
         }
 
@@ -33,9 +50,14 @@ class ConnectedInstanceActivity : ComponentActivity() {
     }
 
     private suspend fun refresh() {
-        lifecycleScope.launch {
-            viewModel.initialise(dataStore)
-            viewModel.invalidateViewModel(dataStore.getApiKey())
-        }
+        viewModel.initialise(dataStore)
+        viewModel.invalidateViewModel(dataStore.getApiKey())
+    }
+
+    private suspend fun saveAuthorityConfig(
+        item: ConnectedInstanceItem,
+        authorityConfig: AuthorityConfig?
+    ) {
+        viewModel.saveAuthorityConfig(dataStore.getApiKey(), item, authorityConfig)
     }
 }

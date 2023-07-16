@@ -4,10 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
@@ -20,20 +24,25 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.material.placeholder
 import flights.interstellar.admin.R
+import flights.interstellar.admin.api.pojo.AuthorityConfig
 import flights.interstellar.admin.api.pojo.InstanceInfo
 import flights.interstellar.admin.common.InterstallarAdminTheme
 import flights.interstellar.admin.common.Purple80
 import flights.interstellar.admin.repository.instanceInfoRepository
 import kotlinx.coroutines.launch
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +50,11 @@ fun MainScreen(
     backButtonCallback: suspend () -> Unit,
     refreshButtonCallback: suspend () -> Unit,
     snackbarState: SnackbarHostState,
-    itemsState: State<List<ConnectedInstanceItem>?>
+    itemsState: State<List<ConnectedInstanceItem>?>,
+    onItemClickListener: (ConnectedInstanceItem) -> Unit,
+    authorityConfigDialogDisplayState: State<Pair<ConnectedInstanceItem, AuthorityConfig?>?>,
+    authorityConfigConfirmCallback: suspend (ConnectedInstanceItem, AuthorityConfig?) -> Unit,
+    authorityConfigDismissCallback: suspend () -> Unit,
 ) {
     val scrollBehaviour = exitUntilCollapsedScrollBehavior()
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
@@ -62,7 +75,7 @@ fun MainScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = stringResource(id = R.string.back)
                             )
                         }
                     },
@@ -72,7 +85,7 @@ fun MainScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
-                                contentDescription = "Refresh"
+                                contentDescription = stringResource(id = R.string.refresh)
                             )
                         }
                     },
@@ -92,7 +105,10 @@ fun MainScreen(
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = "Total instances: $it"
+                            text = stringResource(id = R.string.total_instances).format(
+                                Locale.US,
+                                it
+                            )
                         )
                     }
                 }
@@ -102,7 +118,7 @@ fun MainScreen(
                 ) {
                     itemsState.value?.let {
                         items(it) { item ->
-                            ConnectedInstanceListItem(item)
+                            ConnectedInstanceListItem(item, onItemClickListener)
                         }
                     } ?: run {
                         item {
@@ -113,6 +129,93 @@ fun MainScreen(
                     }
                 }
             }
+        }
+
+        if (authorityConfigDialogDisplayState.value != null) {
+            val authorityConfig =
+                remember { mutableStateOf(authorityConfigDialogDisplayState.value?.second) }
+
+            AlertDialog(
+                properties = DialogProperties(
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = true,
+                    securePolicy = SecureFlagPolicy.Inherit
+                ),
+                title = {
+                    Text(
+                        text = "Authority config"
+                    )
+                },
+                confirmButton = {
+                    Text(
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = {
+                                lifecycleScope.launch {
+                                    authorityConfigConfirmCallback.invoke(
+                                        authorityConfigDialogDisplayState.value!!.first,
+                                        authorityConfig.value
+                                    )
+                                }
+                            }
+                        ),
+                        text = stringResource(R.string.confirm),
+                    )
+                },
+                dismissButton = {
+                    Text(
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = {
+                                lifecycleScope.launch {
+                                    authorityConfigDismissCallback.invoke()
+                                }
+                            }
+                        ),
+                        text = stringResource(R.string.dismiss)
+                    )
+                },
+                text = {
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(1f),
+                        value = authorityConfig.value?.probability?.toString() ?: "",
+                        onValueChange = {
+                            try {
+                                authorityConfig.value =
+                                    if (authorityConfig.value == null) {
+                                        // Create a new one
+                                        AuthorityConfig(
+                                            enableProbability = true,
+                                            probability = it.toInt(),
+                                            authoritySet = listOf(),
+                                            isAllowList = false,
+                                            receiveOnly = false
+                                        )
+                                    } else {
+                                        authorityConfig.value!!.copy(
+                                            enableProbability = true,
+                                            probability = it.toInt()
+                                        )
+                                    }
+                            } catch (_: NumberFormatException) {
+                                if (it.isBlank())
+                                    authorityConfig.value = null
+                            }
+
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        )
+                    )
+                },
+                onDismissRequest = {
+                    lifecycleScope.launch {
+                        authorityConfigDismissCallback.invoke()
+                    }
+                }
+            )
         }
     }
 }
@@ -128,23 +231,43 @@ fun MainScreenPreview() {
         itemsState = remember {
             mutableStateOf(
                 listOf(
-                    ConnectedInstanceItem(instanceUrl = "example.com"),
-                    ConnectedInstanceItem(instanceUrl = "example2.com"),
-                    ConnectedInstanceItem(instanceUrl = "example3.com")
+                    ConnectedInstanceItem(
+                        instanceUrl = "example.com", authorityConfig = AuthorityConfig(
+                            probability = 178,
+                            enableProbability = true,
+                            authoritySet = listOf(),
+                            isAllowList = false,
+                            receiveOnly = false
+                        )
+                    ),
+                    ConnectedInstanceItem(instanceUrl = "example2.com", authorityConfig = null),
+                    ConnectedInstanceItem(instanceUrl = "example3.com", authorityConfig = null)
                 )
             )
-        }
+        },
+        onItemClickListener = {},
+        authorityConfigDialogDisplayState = remember { mutableStateOf(null) },
+        authorityConfigConfirmCallback = { _, _ -> },
+        authorityConfigDismissCallback = {}
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConnectedInstanceListItem(item: ConnectedInstanceItem) {
+fun ConnectedInstanceListItem(
+    item: ConnectedInstanceItem,
+    onItemClickListener: (ConnectedInstanceItem) -> Unit
+) {
     val apLoadingCompleteState = remember { mutableStateOf(false) }
     val instanceInfoState = remember { mutableStateOf<InstanceInfo?>(null) }
 
     Column {
         ListItem(
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                onClick = { onItemClickListener.invoke(item) },
+            ),
             headlineText = {
                 Text(
                     text = instanceInfoState.value?.instanceName ?: item.instanceUrl,
@@ -165,8 +288,19 @@ fun ConnectedInstanceListItem(item: ConnectedInstanceItem) {
                         .size(40.dp)
                         .clip(CircleShape),
                     model = instanceInfoState.value?.instanceAdminUser?.profilePhotoUrl,
-                    contentDescription = "Instance admin profile photo"
+                    contentDescription = stringResource(R.string.instance_admin_profile_photo)
                 )
+            },
+            trailingContent = {
+                Row {
+                    if (item.authorityConfig?.enableProbability == true) {
+                        Text(
+                            "Prob: ${
+                                "%.2f".format((item.authorityConfig.probability / 255.0f) * 100)
+                            }%"
+                        )
+                    }
+                }
             }
         )
         Divider()
@@ -220,7 +354,7 @@ fun ConnectedInstanceListSkeletonItem() {
                         .clip(CircleShape)
                         .placeholder(true, highlight = PlaceholderHighlight.fade()),
                     painter = ColorPainter(color = Purple80),
-                    contentDescription = "Instance admin profile photo"
+                    contentDescription = stringResource(R.string.instance_admin_profile_photo)
                 )
             }
         )

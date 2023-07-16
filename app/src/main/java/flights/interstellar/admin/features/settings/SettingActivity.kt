@@ -23,11 +23,9 @@ class SettingActivity : ComponentActivity() {
                 endpointUrlChangeCallback = { viewModel.endpointUrlState.value = it },
                 apiKeyValueState = viewModel.apiKeyState,
                 apiKeyChangeCallback = { viewModel.apiKeyState.value = it },
+                interstellarModeValueState = viewModel.interstellarMode,
+                interstellarModeChangeCallback = { viewModel.interstellarMode.value = it },
                 backButtonCallback = {
-                    //TODO: Confirm exit without saving?
-                    finish()
-                },
-                doneButtonCallback = {
                     lifecycleScope.launch {
                         if (viewModel.endpointUrlErrorMessageIdState.value == null) {
                             handleDone()
