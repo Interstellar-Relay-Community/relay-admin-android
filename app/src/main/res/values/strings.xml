@@ -14,4 +14,6 @@
     <string name="enable_interstellar_features">Enable Interstellar Relay Community specific features.</string>
     <string name="delete">Delete</string>
     <string name="instance_admin_profile_photo">Instance admin profile photo</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="confirm">Confirm</string>
 </resources>
